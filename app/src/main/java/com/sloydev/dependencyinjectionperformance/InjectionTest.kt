@@ -36,16 +36,11 @@ class InjectionTest : KoinComponent {
     fun runTests(): List<LibraryResult> {
         val results = listOf(
             koinTest(),
-            kodeinTest(),
-            katanaTest(),
-            customTest(),
             daggerTest()
         )
-        reportMarkdown(results)
+
         return results
     }
-
-
 
     private fun runTest(
         setup: () -> Unit,
