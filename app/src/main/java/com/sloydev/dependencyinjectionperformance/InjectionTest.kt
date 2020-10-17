@@ -1,17 +1,20 @@
 package com.sloydev.dependencyinjectionperformance
 
+import android.app.Application
 import android.os.Build
+import android.util.Log
 import com.sloydev.dependencyinjectionperformance.custom.DIContainer
 import com.sloydev.dependencyinjectionperformance.custom.customJavaModule
 import com.sloydev.dependencyinjectionperformance.custom.customKotlinModule
-import com.sloydev.dependencyinjectionperformance.dagger2.DaggerJavaDaggerComponent
-import com.sloydev.dependencyinjectionperformance.dagger2.DaggerKotlinDaggerComponent
-import com.sloydev.dependencyinjectionperformance.dagger2.JavaDaggerComponent
-import com.sloydev.dependencyinjectionperformance.dagger2.KotlinDaggerComponent
+import com.sloydev.dependencyinjectionperformance.hilt.*
 import com.sloydev.dependencyinjectionperformance.katana.katanaJavaModule
 import com.sloydev.dependencyinjectionperformance.katana.katanaKotlinModule
 import com.sloydev.dependencyinjectionperformance.koin.koinJavaModule
 import com.sloydev.dependencyinjectionperformance.koin.koinKotlinModule
+import dagger.BindsInstance
+import dagger.hilt.EntryPoint
+import dagger.hilt.EntryPoints
+import dagger.hilt.InstallIn
 import org.kodein.di.Kodein
 import org.kodein.di.direct
 import org.kodein.di.erased.instance
@@ -26,26 +29,25 @@ import org.rewedigital.katana.android.environment.AndroidEnvironmentContext.Prof
 import org.rewedigital.katana.createComponent
 import javax.inject.Inject
 
-class InjectionTest : KoinComponent {
+class InjectionTest(
+    private val mApplication: Application
+) : KoinComponent {
 
-    private val kotlinDaggerTest = KotlinDaggerTest()
-    private val javaDaggerTest = JavaDaggerTest()
+    @Inject
+    lateinit var kotlinHiltComponentBuilder: KotlinHiltComponentBuilder
+
+    @Inject
+    lateinit var javaHiltComponentBuilder: JavaHiltComponentBuilder
 
     private val rounds = 100
 
     fun runTests(): List<LibraryResult> {
         val results = listOf(
             koinTest(),
-            kodeinTest(),
-            katanaTest(),
-            customTest(),
-            daggerTest()
+            hiltTest()
         )
-        reportMarkdown(results)
         return results
     }
-
-
 
     private fun runTest(
         setup: () -> Unit,
@@ -131,29 +133,54 @@ class InjectionTest : KoinComponent {
         ))
     }
 
-    private fun daggerTest(): LibraryResult {
-        log("Running Dagger...")
-        lateinit var kotlinComponent: KotlinDaggerComponent
-        lateinit var javaComponent: JavaDaggerComponent
-        return LibraryResult("Dagger", mapOf(
+    private fun hiltTest(): LibraryResult {
+        log("Running Hilt")
+        lateinit var kotlinComponent: KotlinHiltComponent
+        lateinit var javaComponent: JavaHiltComponent
+
+        return LibraryResult("Hilt", mapOf(
             Variant.KOTLIN to runTest(
-                setup = { kotlinComponent = DaggerKotlinDaggerComponent.create() },
-                test = { kotlinComponent.inject(kotlinDaggerTest) }
+                setup = {
+                    val applicationComponent = (mApplication as Hilt_MyApplication).generatedComponent()
+                    EntryPoints.get(applicationComponent, HiltApplicationEntryPoint::class.java).inject(this)
+                    kotlinComponent = kotlinHiltComponentBuilder.build()
+                },
+                test = {
+                    EntryPoints.get(kotlinComponent, KotlinHiltTestEntryPoint::class.java).getKotlinHiltTest()
+                }
             ),
             Variant.JAVA to runTest(
-                setup = { javaComponent = DaggerJavaDaggerComponent.create() },
-                test = { javaComponent.inject(javaDaggerTest) }
+                setup = {
+                    val applicationComponent = (mApplication as Hilt_MyApplication).generatedComponent()
+                    EntryPoints.get(applicationComponent, HiltApplicationEntryPoint::class.java).inject(this)
+                    javaComponent = javaHiltComponentBuilder.build()
+                },
+                test = {
+                    EntryPoints.get(javaComponent, JavaHiltTestEntryPoint::class.java).getJavaHiltTest()
+                }
             )
         ))
     }
 
-    class KotlinDaggerTest {
-        @Inject
-        lateinit var daggerFib8: Fib8
+    class KotlinHiltTest @Inject constructor(
+        val hiltFib8: Fib8
+    ) {
     }
 
-    class JavaDaggerTest {
-        @Inject
-        lateinit var daggerFib8: FibonacciJava.Fib8
+    class JavaHiltTest @Inject constructor(
+        val javaFib8: FibonacciJava.Fib8
+    ) {
+    }
+
+    @EntryPoint
+    @InstallIn(KotlinHiltComponent::class)
+    interface KotlinHiltTestEntryPoint {
+        fun getKotlinHiltTest(): KotlinHiltTest
+    }
+
+    @EntryPoint
+    @InstallIn(JavaHiltComponent::class)
+    interface JavaHiltTestEntryPoint {
+        fun getJavaHiltTest(): JavaHiltTest
     }
 }

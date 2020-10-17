@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TableRow
@@ -12,9 +13,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.plusAssign
 import androidx.core.view.updatePadding
+import com.sloydev.dependencyinjectionperformance.hilt.JavaHiltComponentBuilder
+import com.sloydev.dependencyinjectionperformance.hilt.KotlinHiltComponentBuilder
+import dagger.BindsInstance
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.internal.managers.ApplicationComponentManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun runTests() {
-        val results = InjectionTest().runTests()
+        val results = InjectionTest(application).runTests()
         reportOnLogcat(results)
         reportOnScreen(results)
     }

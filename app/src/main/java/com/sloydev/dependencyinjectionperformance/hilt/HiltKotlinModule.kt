@@ -1,12 +1,13 @@
-package com.sloydev.dependencyinjectionperformance.dagger2
+package com.sloydev.dependencyinjectionperformance.hilt
 
+import com.sloydev.dependencyinjectionperformance.*
 import dagger.Module
 import dagger.Provides
-import com.sloydev.dependencyinjectionperformance.*
-/**
- * Generated with https://gist.github.com/Sloy/12affca1e49ba052053ab4c8bfc5bcb4
- */
-@Module class KotlinDaggerModule {
+import dagger.hilt.InstallIn
+
+@Module
+@InstallIn(KotlinHiltComponent::class)
+object HiltKotlinModule {
     @Provides fun provideFib1() = Fib1()
     @Provides fun provideFib2() = Fib2()
     @Provides fun provideFib3(fib2: Fib2, fib1: Fib1) = Fib3(fib2, fib1)
