@@ -13,16 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.plusAssign
 import androidx.core.view.updatePadding
-import com.sloydev.dependencyinjectionperformance.hilt.JavaHiltComponentBuilder
-import com.sloydev.dependencyinjectionperformance.hilt.KotlinHiltComponentBuilder
-import dagger.BindsInstance
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.internal.managers.ApplicationComponentManager
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
